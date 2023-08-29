@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>three.js css3d - periodic table</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			a {
+				color: #8ff;
+			}
+
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				width: 100%;
+				text-align: center;
+			}
+
+			.element {
+				width: 120px;
+				height: 160px;
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.5);
+				border: 1px solid rgba(127,255,255,0.25);
+				font-family: Helvetica, sans-serif;
+				text-align: center;
+				line-height: normal;
+				cursor: default;
+			}
+
+			.element:hover {
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.75);
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+				.element .number {
+					position: absolute;
+					top: 20px;
+					right: 20px;
+					font-size: 22px;
+					color: rgba(127,255,255,0.75);
+				}
+
+				.element .symbol {
+					position: absolute;
+					top: 40px;
+					left: 0px;
+					right: 0px;
+					font-size: 60px;
+					font-weight: bold;
+					color: rgba(255,255,255,0.75);
+					text-shadow: 0 0 10px rgba(0,255,255,0.95);
+				}
+
+				.element .details {
+					position: absolute;
+					bottom: 15px;
+					left: 0px;
+					right: 0px;
+					font-size: 22px;
+					color: rgba(127,255,255,0.75);
+				}
+
+			button {
+				color: rgba(127,255,255,0.75);
+				background: transparent;
+				outline: 1px solid rgba(127,255,255,0.75);
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,0.75);
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - periodic table.</div>
+		<div id="container"></div>
+		<div id="menu">
+			<button id="table">TABLE</button>
+			<button id="sphere">SPHERE</button>
+			<button id="helix">HELIX</button>
+			<button id="grid">GRID</button>
+			<button id = "cone"> CONE </button> <!-- New button cone is added -->
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+
+			import TWEEN from 'three/addons/libs/tween.module.js';
+			import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+			import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+			const table = [
+				'M', 'Mark', '23', 1, 1,
+				'M', 'Ajay', '30', 18, 1,
+				'M', 'Arosha', '19', 1, 2,
+				'F', 'Mayuri', '40', 2, 2,
+				'F', 'Theresa', '45', 13, 2,
+				'F', 'Danika', '20', 14, 2,
+				'F', 'Tharshini', '28', 15, 2,
+				'M', 'Anay', '20', 16, 2,
+				'M', 'Usman', '32', 17, 2,
+				'F', 'Syeda', '31', 18, 2,
+				'M', 'Vicks', '55', 1, 3,
+				'F', 'Kamini', '31', 2, 3,
+				'F', 'Vanesa', '24', 13, 3,
+				'M', 'Ridwan', '21', 14, 3,
+				'M', 'Yogen', '21', 15, 3,
+				'F', 'Dhivya', '33', 16, 3,
+				'M', 'Moses', '35', 17, 3,
+				'M', 'Umer', '22', 18, 3,
+				'M', 'Joel', '21', 1, 4,
+				'F', 'Shanzay', '21', 2, 4,
+				'F', 'Gogila', '44', 3, 4,
+				'M', 'Anas', '30', 4, 4,
+				'M', 'Chern', '22', 5, 4,
+				'M', 'Ikraam', '20', 6, 4,
+				'M', 'Ismaeel', '20', 7, 4,
+				'F', 'Yukta', '23', 8, 4,
+				'F', 'Maryam', '32', 9, 4,
+				'M', 'Raman', '30', 10, 4,
+				'M', 'Kaligan', '32', 11, 4,
+				'F', 'Richa', '21', 12, 4,
+				'M', 'Navanesh', '22', 13, 4,
+				'M', 'Abdullah', '19', 14, 4,
+				'M', 'Gurujala', '25', 15, 4,
+				'M', 'Elawalid', '19', 16, 4,
+				'F', 'Tahira', '21', 17, 4,
+				'F', 'Shradha', '20', 18, 4,
+				'M', 'Manikanth', '25', 1, 5,
+				'M', 'Amer', '22', 2, 5,
+				'F', 'Zefanya', '22', 3, 5,
+				'M', 'Benjamin', '91.224', 4, 5,
+				'M', 'Brian', '22', 5, 5,
+				'F', 'Eman', '29', 6, 5,
+				'M', 'Arittra', '23', 7, 5,
+				'F', 'Mery', '22', 8, 5,
+				'M', 'Ben', '25', 9, 5,
+				'F', 'Jannat', '21', 10, 5,
+				'M', 'Sattish', '22', 11, 5,
+				'F', 'Tehreem', '26', 12, 5,
+				'M', 'Salah', '28', 13, 5,
+				'M', 'Arshad', '25', 14, 5,
+				'M', 'Anthony', '27', 15, 5,
+				'M', 'Khalid', '23', 16, 5,
+				'M', 'Thives', '21', 17, 5,
+				'F', 'Kai', '22', 18, 5,
+				'F', 'Anshika', '20', 1, 6,
+				'M', 'Suleiman', '23', 2, 6,
+				'M', 'Leong', '30', 4, 9,
+				'M', 'Ahad', '28', 5, 9,
+				'M', 'Ahwad', '21', 6, 9,
+				'M', 'Jacques', '25', 7, 9,
+				'M', 'Juicy', '25', 8, 9,
+				'M', 'Raj', '29', 9, 9,
+				'M', 'Owais', '23', 10, 9,
+				'M', 'Kamil', '28', 11, 9,
+				'M', 'Mazahir', '25', 12, 9,
+				'M', 'Rafi', '23', 13, 9,
+				'F', 'Kashmirah', '22', 14, 9,
+				'M', 'Jason', '25', 15, 9,
+				'M', 'Vishal', '26', 16, 9,
+				'M', 'Vedanta', '23', 17, 9,
+				'M', 'Adrian', '26', 18, 9,
+				'M', 'Thaveniesh', '23', 4, 6,
+				'F', 'Tantalum', '180.94788', 5, 6,
+				'M', 'Nityanantan', '30', 6, 6,
+				'M', 'Fahad', '24', 7, 6,
+				'M', 'Tan', '23', 8, 6,
+				'F', 'Sabah', '35', 9, 6,
+				'F', 'Mehfooz', '25', 10, 6,
+				'F', 'Anjum', '29', 11, 6,
+				'M', 'Lok', '25', 12, 6,
+				'M', 'Imran', '24', 13, 6,
+				'M', 'Ravina', '29', 14, 6,
+				'M', 'Hassan', '28', 15, 6,
+				'M', 'Abbas', '29', 16, 6,
+				'M', 'Abir', '21', 17, 6,
+				'M', 'Jaitoo', '22', 18, 6,
+				'M', 'Viknesh', '30', 1, 7,
+				'F', 'Roshnee', '26', 2, 7,
+				'F', 'Sharma', '20', 4, 10,
+				'M', 'Raiyan', '23', 5, 10,
+				'M', 'Neelesh', '29', 6, 10,
+				'F', 'Johanes', '28', 7, 10,
+				'F', 'Samruddhi', '20', 8, 10,
+				'F', 'Zaveri', '20', 9, 10,
+				'M', 'Pareek', '21', 10, 10,
+				'F', 'Hailey', '20', 11, 10,
+				'F', 'Jordan', '20', 12, 10,
+				'M', 'Wayne', '25', 13, 10,
+				'M', 'Sri', '28', 14, 10,
+				'M', 'Musa', '27', 15, 10,
+				'M', 'Prasad', '30', 16, 10,
+				'M', 'Dhruv', '20', 17, 10,
+				'F', 'Ali', '18', 18, 10,
+				'M', 'Aryan', '27', 4, 7,
+				'M', 'Zafar', '25', 5, 7,
+				'F', 'Wagh', '21', 6, 7,
+				'M', 'Akash', '22', 7, 7,
+				'M', 'Patil', '23', 8, 7,
+				'M', 'Reddy', '39', 9, 7,
+				'M', 'Proboda', '28', 10, 7,
+				'F', 'Kuna', '21', 11, 7,
+				'M', 'Mahendran', '20', 12, 7,
+				'F', 'Yasmin', '22', 13, 7,
+				'M', 'Rishee', '25', 14, 7,
+				'M', 'Lim', '21', 15, 7,
+				'F', 'Ujoodha', '23', 16, 7,
+				'M', 'Silva', '24', 17, 7,
+				'M', 'Sachdeva', '26', 18, 7
+			];
+
+			let camera, scene, renderer;
+			let controls;
+
+			const objects = [];
+			const targets = { table: [], sphere: [], helix: [], grid: [], cone: []};
+
+			init();
+			animate();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 3000;
+
+				scene = new THREE.Scene();
+
+				// table
+
+				for ( let i = 0; i < table.length; i += 5 ) {
+
+					const element = document.createElement( 'div' );
+					element.className = 'element';
+					//element.style.backgroundColor = 'rgba(0,127,127,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+					if (table[i]=="M"){
+						element.style.backgroundColor = "blue";
+						//If the symbol is 'M', the background colour of the element becomes blue
+					}
+					else{
+						element.style.backgroundColor = "rgb(231, 84, 128)";
+						//if the symbol if 'F', the backgrond colour of the element becomes pink
+					}
+
+					const number = document.createElement( 'div' );
+					number.className = 'number';
+					number.textContent = ( i / 5 ) + 1;
+					element.appendChild( number );
+
+					const symbol = document.createElement( 'div' );
+					symbol.className = 'symbol';
+					symbol.textContent = table[ i ];
+					element.appendChild( symbol );
+
+					const details = document.createElement( 'div' );
+					details.className = 'details';
+					details.innerHTML = table[ i + 1 ] + '<br>' + table[ i + 2 ];
+					element.appendChild( details );
+
+					const objectCSS = new CSS3DObject( element );
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+					scene.add( objectCSS );
+
+					objects.push( objectCSS );
+
+					//
+
+					const object = new THREE.Object3D();
+					object.position.x = ( table[ i + 3 ] * 140 ) - 1330;
+					object.position.y = - ( table[ i + 4 ] * 180 ) + 990;
+
+					targets.table.push( object );
+
+				}
+
+				// sphere
+
+				const vector = new THREE.Vector3();
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const phi = Math.acos( - 1 + ( 2 * i ) / l );
+					const theta = Math.sqrt( l * Math.PI ) * phi;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromSphericalCoords( 800, phi, theta );
+
+					vector.copy( object.position ).multiplyScalar( 2 );
+
+					object.lookAt( vector );
+
+					targets.sphere.push( object );
+
+				}
+
+				// helix
+
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+					const theta = i * 0.175 + Math.PI;
+					const y = - ( i * 8 ) + 450;
+
+					const object = new THREE.Object3D();
+
+					object.position.setFromCylindricalCoords( 900, theta, y );
+
+					vector.x = object.position.x * 2;
+					vector.y = object.position.y;
+					vector.z = object.position.z * 2;
+
+					object.lookAt( vector );
+
+					targets.helix.push( object );
+
+				}
+
+				// grid
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = new THREE.Object3D();
+
+					object.position.x = ( ( i % 5 ) * 400 ) - 800;
+					object.position.y = ( - ( Math.floor( i / 5 ) % 5 ) * 400 ) + 800;
+					object.position.z = ( Math.floor( i / 25 ) ) * 1000 - 2000;
+
+					targets.grid.push( object );
+
+				}
+
+				// Cone Shaped objects
+				for (let i = 0, l = objects.length; i < l; i++) {
+					const fraction = i / l; 
+					const height = 900; // height of the cone
+					const radiusAtBase = 900; // radius of the cone
+                    
+					const y = fraction * height;
+					const radiusAtY = (1 - fraction) * radiusAtBase; 
+					const theta = i * 0.2; // angle
+
+					const object = new THREE.Object3D();
+					object.position.setFromCylindricalCoords(radiusAtY, theta, y);
+
+					vector.x = object.position.x * 2;
+					vector.y = object.position.y;
+					vector.z = object.position.z * 2;
+
+					object.lookAt(vector);
+
+					targets.cone.push(object);
+				}
+
+				renderer = new CSS3DRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+				//basically it allows the user to rotate, skew, flip based on the mouse movement
+
+				controls = new TrackballControls( camera, renderer.domElement );
+				controls.minDistance = 500;
+				controls.maxDistance = 6000;
+				controls.addEventListener( 'change', render );
+
+				const buttonTable = document.getElementById( 'table' );
+				buttonTable.addEventListener( 'click', function () {
+
+					transform( targets.table, 2000 );
+
+				} );
+
+				const buttonSphere = document.getElementById( 'sphere' );
+				buttonSphere.addEventListener( 'click', function () {
+
+					transform( targets.sphere, 2000 );
+
+				} );
+
+				const buttonHelix = document.getElementById( 'helix' );
+				buttonHelix.addEventListener( 'click', function () {
+
+					transform( targets.helix, 2000 );
+
+				} );
+
+				const buttonGrid = document.getElementById( 'grid' );
+				buttonGrid.addEventListener( 'click', function () {
+
+					transform( targets.grid, 2000 );
+
+				} );
+				
+				const buttonCone = document.getElementById("cone")
+				buttonCone.addEventListener("click", function () {
+					transform(targets.cone, 2000);
+				});
+
+
+
+				transform( targets.table, 2000 );
+
+				//allows user to revise the size of the window screen 
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function transform( targets, duration ) {
+
+				TWEEN.removeAll();
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+
+					const object = objects[ i ];
+					const target = targets[ i ];
+
+					new TWEEN.Tween( object.position )
+						.to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+					new TWEEN.Tween( object.rotation )
+						.to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+				}
+
+				new TWEEN.Tween( this )
+					.to( {}, duration * 2 )
+					.onUpdate( render )
+					.start();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				TWEEN.update();
+
+				controls.update();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
